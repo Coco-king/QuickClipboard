@@ -1,7 +1,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use tauri::Manager;
 use std::fs;
+use tauri::Manager;
 
 mod commands;
 mod security;
@@ -9,28 +9,28 @@ mod services;
 mod utils;
 mod windows;
 
-pub use utils::{mouse, screen};
-pub use services::{AppSettings, get_settings, update_settings, get_data_directory, hotkey, SoundPlayer, AppSounds};
-pub use services::system::input_monitor;
-pub use services::system::focus;
 pub use services::clipboard::{
-    start_clipboard_monitor, stop_clipboard_monitor,
-    is_monitor_running as is_clipboard_monitor_running,
-    set_app_handle as set_clipboard_app_handle,
+    is_monitor_running as is_clipboard_monitor_running, set_app_handle as set_clipboard_app_handle,
+    start_clipboard_monitor,
+    stop_clipboard_monitor,
 };
+pub use services::low_memory::{enter_low_memory_mode, exit_low_memory_mode, is_low_memory_mode};
+pub use services::system::focus;
+pub use services::system::input_monitor;
+pub use services::{get_data_directory, get_settings, hotkey, update_settings, AppSettings, AppSounds, SoundPlayer};
+pub use utils::positioning::{center_window, get_window_bounds, position_at_cursor};
+pub use utils::{mouse, screen};
 pub use windows::main_window::{
-    get_main_window, is_main_window_visible, show_main_window, hide_main_window,
-    toggle_main_window_visibility, start_drag, stop_drag, is_dragging, check_snap, 
-    snap_to_edge, restore_from_snap, is_window_snapped, hide_snapped_window, 
-    show_snapped_window, init_edge_monitor, WindowState, SnapEdge, get_window_state, 
-    set_window_state,
+    check_snap, get_main_window, get_window_state, hide_main_window,
+    hide_snapped_window, init_edge_monitor, is_dragging, is_main_window_visible, is_window_snapped,
+    restore_from_snap, set_window_state, show_main_window, show_snapped_window,
+    snap_to_edge, start_drag, stop_drag, toggle_main_window_visibility, SnapEdge,
+    WindowState,
 };
-pub use utils::positioning::{position_at_cursor, center_window, get_window_bounds};
-pub use windows::tray::setup_tray;
-pub use windows::settings_window::open_settings_window;
-pub use windows::quickpaste;
 pub use windows::plugins::context_menu::is_context_menu_visible;
-pub use services::low_memory::{is_low_memory_mode, enter_low_memory_mode, exit_low_memory_mode};
+pub use windows::quickpaste;
+pub use windows::settings_window::open_settings_window;
+pub use windows::tray::setup_tray;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -172,6 +172,7 @@ pub fn run() {
                 commands::play_paste_sound,
                 commands::play_scroll_sound,
                 commands::reload_all_windows,
+                commands::hide_dashboard_window,
                 commands::check_updates_and_open_window,
                 windows::plugins::context_menu::commands::show_context_menu,
                 windows::plugins::context_menu::commands::get_context_menu_options,
@@ -208,6 +209,18 @@ pub fn run() {
                 commands::il_rename_image,
                 commands::il_get_images_dir,
                 commands::il_get_gifs_dir,
+                // 启动板命令
+                commands::get_dashboard_groups,
+                commands::add_dashboard_group,
+                commands::update_dashboard_group,
+                commands::delete_dashboard_group,
+                commands::reorder_dashboard_groups,
+                commands::get_dashboard_shortcuts,
+                commands::add_dashboard_shortcut,
+                commands::update_dashboard_shortcut,
+                commands::delete_dashboard_shortcut,
+                commands::reorder_dashboard_shortcuts,
+                commands::get_dashboard_data,
             ])
         .setup(|app| {
                 #[cfg(windows)]
@@ -301,6 +314,9 @@ pub fn run() {
                 }
 
                 windows::updater_window::start_update_checker(app.handle().clone());
+
+            // 预加载dashboard窗口（不可见）
+            let _ = windows::dashboard_window::creator::create_dashboard_window(app.handle(), false);
 
             Ok(())
         })

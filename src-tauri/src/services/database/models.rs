@@ -49,6 +49,34 @@ pub struct GroupInfo {
     pub item_count: i32,
 }
 
+// 启动板分组
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DashboardGroup {
+    pub id: String,
+    pub name: String,
+    pub icon: Option<String>,
+    pub order_index: i32,
+    pub created_at: i64,
+    pub updated_at: i64,
+}
+
+// 启动板快捷方式
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DashboardShortcut {
+    pub id: String,
+    pub group_id: String,
+    pub name: String,
+    pub icon: Option<String>,
+    pub url: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub run_as_admin: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub args: Option<String>,
+    pub order_index: i32,
+    pub created_at: i64,
+    pub updated_at: i64,
+}
+
 // 分页查询结果
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PaginatedResult<T> {

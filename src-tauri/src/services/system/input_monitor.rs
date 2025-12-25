@@ -1,10 +1,10 @@
 use once_cell::sync::Lazy;
 use parking_lot::Mutex;
 use rdev::{grab, Event, EventType, Key};
+use std::collections::HashMap;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::thread;
 use std::time::{Duration, Instant};
-use std::collections::HashMap;
 use tauri::{Emitter, Manager, WebviewWindow};
 
 static MAIN_WINDOW: Mutex<Option<WebviewWindow>> = Mutex::new(None);
@@ -490,7 +490,26 @@ fn handle_middle_button_action() {
     }
 
     if let Some(window) = MAIN_WINDOW.lock().as_ref() {
-        crate::show_main_window(window);
+        // crate::show_main_window(window);
+        toggle_dashboard_window(window);
+    }
+}
+
+fn toggle_dashboard_window(window: &WebviewWindow) {
+    let app = window.app_handle().clone();
+
+    // 切换dashboard窗口的显示/隐藏状态
+    if let Some(dashboard_window) = app.get_webview_window("dashboard") {
+        if dashboard_window.is_visible().unwrap_or(false) {
+            // 如果窗口可见，就隐藏它
+            let _ = dashboard_window.hide();
+        } else {
+            // 如果窗口不可见，就显示它
+            let _ = crate::windows::dashboard_window::manager::open_dashboard_window(&app);
+        }
+    } else {
+        // 如果窗口不存在，就创建并显示它
+        let _ = crate::windows::dashboard_window::manager::open_dashboard_window(&app);
     }
 }
 
@@ -556,4 +575,3 @@ fn handle_click_outside() {
         }
     }
 }
-

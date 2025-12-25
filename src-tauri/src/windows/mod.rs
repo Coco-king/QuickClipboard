@@ -7,3 +7,4 @@ pub mod tray;
 pub mod plugins;
 pub mod pin_image_window;
 pub mod updater_window;
+pub mod dashboard_window;

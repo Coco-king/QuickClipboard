@@ -1,6 +1,6 @@
-use rusqlite::Connection;
-use parking_lot::Mutex;
 use once_cell::sync::Lazy;
+use parking_lot::Mutex;
+use rusqlite::Connection;
 
 // 数据库连接
 static DB_CONNECTION: Lazy<Mutex<Option<Connection>>> = 
@@ -187,6 +187,48 @@ fn create_tables(conn: &Connection) -> Result<(), String> {
         "CREATE INDEX IF NOT EXISTS idx_favorites_group ON favorites(group_name, item_order)",
         [],
     ).map_err(|e| format!("创建收藏索引失败: {}", e))?;
+
+    // 创建启动板分组表
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS dashboard_groups (
+            id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            icon TEXT,
+            order_index INTEGER NOT NULL DEFAULT 0,
+            created_at INTEGER NOT NULL,
+            updated_at INTEGER NOT NULL
+        )",
+        [],
+    ).map_err(|e| format!("创建启动板分组表失败: {}", e))?;
+
+    // 创建启动板快捷方式表
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS dashboard_shortcuts (
+            id TEXT PRIMARY KEY,
+            group_id TEXT NOT NULL,
+            name TEXT NOT NULL,
+            icon TEXT,
+            url TEXT NOT NULL,
+            run_as_admin BOOLEAN NOT NULL DEFAULT 0,
+            args TEXT,
+            order_index INTEGER NOT NULL DEFAULT 0,
+            created_at INTEGER NOT NULL,
+            updated_at INTEGER NOT NULL,
+            FOREIGN KEY (group_id) REFERENCES dashboard_groups(id) ON DELETE CASCADE
+        )",
+        [],
+    ).map_err(|e| format!("创建启动板快捷方式表失败: {}", e))?;
+
+    // 创建启动板索引
+    conn.execute(
+        "CREATE INDEX IF NOT EXISTS idx_dashboard_groups_order ON dashboard_groups(order_index, created_at)",
+        [],
+    ).map_err(|e| format!("创建启动板分组索引失败: {}", e))?;
+
+    conn.execute(
+        "CREATE INDEX IF NOT EXISTS idx_dashboard_shortcuts_group ON dashboard_shortcuts(group_id, order_index)",
+        [],
+    ).map_err(|e| format!("创建启动板快捷方式索引失败: {}", e))?;
 
     Ok(())
 }

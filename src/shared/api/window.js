@@ -55,3 +55,7 @@ export async function reloadAllWindows() {
   return await invoke('reload_all_windows')
 }
 
+// 隐藏启动板窗口
+export async function hideDashboardWindow() {
+  return await invoke('hide_dashboard_window')
+}

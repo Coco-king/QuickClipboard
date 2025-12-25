@@ -1,4 +1,4 @@
-use tauri::{AppHandle, WebviewWindow, Manager};
+use tauri::{AppHandle, Manager, WebviewWindow};
 
 #[tauri::command]
 pub fn start_custom_drag(window: WebviewWindow, mouse_screen_x: i32, mouse_screen_y: i32) -> Result<(), String> {
@@ -130,9 +130,16 @@ pub fn reload_all_windows(app: AppHandle) -> Result<(), String> {
     Ok(())
 }
 
+// 隐藏启动板窗口
+#[tauri::command]
+pub fn hide_dashboard_window(app: AppHandle) -> Result<(), String> {
+    if let Some(window) = app.get_webview_window("dashboard") {
+        window.hide().map_err(|e| format!("隐藏启动板窗口失败: {}", e))?;
+    }
+    Ok(())
+}
+
 #[tauri::command]
 pub async fn check_updates_and_open_window(app: AppHandle) -> Result<bool, String> {
     crate::windows::updater_window::check_updates_and_open_window(&app).await
 }
-
-

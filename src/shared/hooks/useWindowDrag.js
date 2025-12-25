@@ -71,4 +71,3 @@ export function useWindowDrag(options = {}) {
 
   return elementRef
 }
-

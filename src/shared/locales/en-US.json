@@ -329,6 +329,21 @@
       "conflictError": "Shortcut already in use",
       "registrationError": "Registration failed"
     },
+    "dashboard": {
+      "middleButton": "Middle Button",
+      "mouseTitle": "Mouse Shortcuts",
+      "mouseDesc": "Quickly operate dashboard with mouse",
+      "enableMouseMiddle": "Enable Middle Click Shortcut",
+      "enableMouseMiddleDesc": "Use middle mouse button to quickly open dashboard",
+      "mouseMiddleModifier": "Middle Click Modifier",
+      "mouseMiddleModifierDesc": "Choose modifier key combination for middle mouse button",
+      "mouseMiddleTrigger": "Middle Click Mode",
+      "mouseMiddleTriggerDesc": "Choose trigger mode for middle button alone",
+      "mouseMiddleTriggerShortPress": "Short press",
+      "mouseMiddleTriggerLongPress": "Long press",
+      "mouseMiddleLongPressThreshold": "Long press threshold",
+      "mouseMiddleLongPressThresholdDesc": "Hold time to trigger long press (milliseconds)"
+    },
     "clipboard": {
       "title": "Clipboard",
       "description": "Configure clipboard monitoring and handling options",
@@ -621,6 +636,9 @@
       "share": "Share & Recommend",
       "donate": "Support & Donate"
     }
+  },
+  "dashboard": {
+    "title": "Dashboard"
   },
   "footer": {
     "openClipboard": "Show/Hide",

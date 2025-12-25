@@ -8,6 +8,7 @@ pub mod sound;
 pub mod data_management;
 pub mod screenshot;
 pub mod image_library;
+pub mod dashboard;
 
 pub use clipboard::*;
 pub use favorites::*;
@@ -19,4 +20,5 @@ pub use sound::*;
 pub use data_management::*;
 pub use screenshot::*;
 pub use image_library::*;
+pub use dashboard::*;
 

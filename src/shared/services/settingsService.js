@@ -31,7 +31,6 @@ export const defaultSettings = {
   // 快捷键设置
   toggleShortcut: 'Shift+Space',
   quickpasteShortcut: 'Ctrl+`',
-  screenshotShortcut: 'Ctrl+Shift+A',
   numberShortcuts: true,
   numberShortcutsModifier: 'Ctrl',
   

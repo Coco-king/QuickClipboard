@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSnapshot } from 'valtio';
 import { listen } from '@tauri-apps/api/event';
@@ -8,7 +8,7 @@ import { groupsStore } from '@shared/store/groupsStore';
 import { navigationStore } from '@shared/store/navigationStore';
 import { toolsStore } from '@shared/store/toolsStore';
 import { useWindowDrag } from '@shared/hooks/useWindowDrag';
-import { useTheme, applyThemeToBody } from '@shared/hooks/useTheme';
+import { applyThemeToBody, useTheme } from '@shared/hooks/useTheme';
 import { useSettingsSync } from '@shared/hooks/useSettingsSync';
 import { useNavigationKeyboard } from '@shared/hooks/useNavigationKeyboard';
 import { useWindowAnimation } from '@shared/hooks/useWindowAnimation';
@@ -18,10 +18,11 @@ import TitleBar from './components/TitleBar';
 import TabNavigation from './components/TabNavigation';
 import ClipboardTab from './components/ClipboardTab';
 import FavoritesTab from './components/FavoritesTab';
-const EmojiTab = lazy(() => import('./components/EmojiTab'));
 import FooterBar from './components/FooterBar';
 import GroupsPopup from './components/GroupsPopup';
 import ToastContainer from '@shared/components/common/ToastContainer';
+
+const EmojiTab = lazy(() => import('./components/EmojiTab'));
 
 function App() {
   const {
@@ -240,7 +241,7 @@ function App() {
   };
   const handleTabLeft = () => {
     setActiveTab(currentTab => {
-      const tabs = ['clipboard', 'favorites', 'emoji'];
+      const tabs = ['clipboard', 'favorites', 'dashboard', 'emoji'];
       const currentIndex = tabs.indexOf(currentTab);
       if (currentIndex === -1) return tabs[tabs.length - 1];
       return tabs[currentIndex === 0 ? tabs.length - 1 : currentIndex - 1];
@@ -248,7 +249,7 @@ function App() {
   };
   const handleTabRight = () => {
     setActiveTab(currentTab => {
-      const tabs = ['clipboard', 'favorites', 'emoji'];
+      const tabs = ['clipboard', 'favorites', 'dashboard', 'emoji'];
       const currentIndex = tabs.indexOf(currentTab);
       if (currentIndex === -1) return tabs[0];
       return tabs[currentIndex === tabs.length - 1 ? 0 : currentIndex + 1];

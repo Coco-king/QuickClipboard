@@ -46,6 +46,7 @@
       "capabilities": [
         "default",
         "settings",
+        "dashboard",
         "quickpaste",
         "text-editor",
         "screenshot",

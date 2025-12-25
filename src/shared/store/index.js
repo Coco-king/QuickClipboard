@@ -1,6 +1,7 @@
 // 导入
 import { initSettings as initSettingsFunc } from './settingsStore'
 import { initToolsStore as initToolsStoreFunc } from './toolsStore'
+import { initDashboard as initDashboardFunc } from './dashboardStore'
 
 // 导出所有 stores
 export { 
@@ -11,7 +12,7 @@ export {
   clearClipboardHistory 
 } from './clipboardStore'
 export { settingsStore, initSettings } from './settingsStore'
-export {
+export { 
   favoritesStore,
   initFavorites,
   loadFavoritesRange,
@@ -19,8 +20,8 @@ export {
   deleteFavorite,
   pasteFavorite
 } from './favoritesStore'
-export {
-  groupsStore,
+export { 
+  groupsStore, 
   loadGroups,
   addGroup,
   updateGroup,
@@ -29,10 +30,12 @@ export {
 export { toolsStore, initToolsStore } from './toolsStore'
 export { toastStore, toast, TOAST_POSITIONS } from './toastStore'
 export { navigationStore } from './navigationStore'
+export { dashboardStore, initDashboard } from './dashboardStore'
 
 // 初始化所有 stores
 export async function initStores() {
   await initSettingsFunc()
   initToolsStoreFunc()
+  await initDashboardFunc()
 }
 

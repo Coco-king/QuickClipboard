@@ -1,6 +1,6 @@
 use std::sync::atomic::{AtomicBool, AtomicI32, AtomicIsize, Ordering};
 use std::time::Duration;
-use tauri::{Emitter, WebviewWindow, Manager};
+use tauri::{Emitter, Manager, WebviewWindow};
 
 #[cfg(target_os = "windows")]
 use windows::Win32::Foundation::HWND;
@@ -97,6 +97,25 @@ mod platform {
 
 #[cfg(target_os = "windows")]
 pub fn start_drag(window: &WebviewWindow, _: i32, _: i32) -> Result<(), String> {
+    // 对于dashboard窗口，不需要处理snap功能
+    if window.label() != "main" {
+        // 仅执行基础拖动功能
+        if let Ok(hwnd) = window.hwnd() {
+            unsafe {
+                // 不需要安装wndproc，因为dashboard窗口不需要边界限制
+                IS_DRAGGING_ACTIVE.store(true, Ordering::SeqCst);
+            }
+        }
+
+        let win2 = window.clone();
+        std::thread::spawn(move || {
+            std::thread::sleep(Duration::from_millis(8));
+            let _ = win2.start_dragging();
+        });
+
+        return Ok(());
+    }
+
     clear_snap_if_needed();
     super::state::set_dragging(true);
 
@@ -139,7 +158,11 @@ pub fn start_drag(window: &WebviewWindow, _: i32, _: i32) -> Result<(), String> 
 #[cfg(target_os = "windows")]
 pub fn stop_drag(window: &WebviewWindow) -> Result<(), String> {
     IS_DRAGGING_ACTIVE.store(false, Ordering::SeqCst);
-    super::state::set_dragging(false);
+
+    // 对于dashboard窗口，不需要处理main_window的state
+    if window.label() == "main" {
+        super::state::set_dragging(false);
+    }
 
     if let Ok(hwnd) = window.hwnd() {
         unsafe { platform::restore_wndproc(HWND(hwnd.0 as *mut _)); }
@@ -157,6 +180,17 @@ pub fn stop_drag(window: &WebviewWindow) -> Result<(), String> {
 
 #[cfg(not(target_os = "windows"))]
 pub fn start_drag(window: &WebviewWindow, _: i32, _: i32) -> Result<(), String> {
+    // 对于dashboard窗口，不需要处理snap功能
+    if window.label() != "main" {
+        // 仅执行基础拖动功能
+        let win = window.clone();
+        std::thread::spawn(move || {
+            std::thread::sleep(Duration::from_millis(8));
+            let _ = win.start_dragging();
+        });
+        return Ok(());
+    }
+
     clear_snap_if_needed();
     super::state::set_dragging(true);
 
@@ -170,8 +204,11 @@ pub fn start_drag(window: &WebviewWindow, _: i32, _: i32) -> Result<(), String> 
 
 #[cfg(not(target_os = "windows"))]
 pub fn stop_drag(window: &WebviewWindow) -> Result<(), String> {
-    super::state::set_dragging(false);
-    delayed_check_snap(window);
+    // 对于dashboard窗口，不需要处理main_window的state和snap功能
+    if window.label() == "main" {
+        super::state::set_dragging(false);
+        delayed_check_snap(window);
+    }
     Ok(())
 }
 
@@ -197,7 +234,7 @@ fn delayed_check_snap(window: &WebviewWindow) {
 #[cfg(target_os = "windows")]
 fn wait_for_mouse_release(window: WebviewWindow) {
     use windows::Win32::UI::Input::KeyboardAndMouse::{GetAsyncKeyState, VK_LBUTTON};
-    
+
     std::thread::sleep(Duration::from_millis(100));
     loop {
         unsafe {
@@ -210,7 +247,7 @@ fn wait_for_mouse_release(window: WebviewWindow) {
         }
         std::thread::sleep(Duration::from_millis(10));
     }
-    
+
     let _ = stop_drag(&window);
     let _ = window.emit("drag-ended", ());
 }

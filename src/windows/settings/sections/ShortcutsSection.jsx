@@ -174,7 +174,7 @@ function ShortcutsSection({
         )}
       </SettingsSection>
 
-      <SettingsSection title={t('settings.shortcuts.mouseTitle')} description={t('settings.shortcuts.mouseDesc')}>
+      {/*<SettingsSection title={t('settings.shortcuts.mouseTitle')} description={t('settings.shortcuts.mouseDesc')}>
         <SettingItem label={t('settings.shortcuts.enableMouseMiddle')} description={t('settings.shortcuts.enableMouseMiddleDesc')}>
           <Toggle checked={settings.mouseMiddleButtonEnabled} onChange={checked => onSettingChange('mouseMiddleButtonEnabled', checked)} />
         </SettingItem>
@@ -197,6 +197,34 @@ function ShortcutsSection({
 
         {settings.mouseMiddleButtonModifier === 'None' && (
           <SettingItem label={t('settings.shortcuts.mouseMiddleLongPressThreshold')} description={t('settings.shortcuts.mouseMiddleLongPressThresholdDesc')}>
+            <Slider value={settings.mouseMiddleButtonLongPressMs} onChange={value => onSettingChange('mouseMiddleButtonLongPressMs', value)} min={100} max={1000} step={50} unit="ms" />
+          </SettingItem>
+        )}
+      </SettingsSection>*/}
+
+      <SettingsSection title={t('settings.dashboard.mouseTitle')} description={t('settings.dashboard.mouseDesc')}>
+        <SettingItem label={t('settings.dashboard.enableMouseMiddle')} description={t('settings.dashboard.enableMouseMiddleDesc')}>
+          <Toggle checked={settings.mouseMiddleButtonEnabled} onChange={checked => onSettingChange('mouseMiddleButtonEnabled', checked)} />
+        </SettingItem>
+
+        <SettingItem label={t('settings.dashboard.mouseMiddleModifier')} description={t('settings.dashboard.mouseMiddleModifierDesc')}>
+          <ShortcutComboInput
+            value={settings.mouseMiddleButtonModifier === 'None' ? '' : settings.mouseMiddleButtonModifier}
+            onChange={value => onSettingChange('mouseMiddleButtonModifier', value || 'None')}
+            modifierOptions={mouseModifierOptions}
+            fixedKey={t('settings.dashboard.middleButton')}
+            allowEmpty
+          />
+        </SettingItem>
+
+        {settings.mouseMiddleButtonModifier === 'None' && (
+          <SettingItem label={t('settings.dashboard.mouseMiddleTrigger')} description={t('settings.dashboard.mouseMiddleTriggerDesc')}>
+            <Select value={settings.mouseMiddleButtonTrigger} onChange={value => onSettingChange('mouseMiddleButtonTrigger', value)} options={mouseTriggerOptions} className="w-56" />
+          </SettingItem>
+        )}
+
+        {settings.mouseMiddleButtonModifier === 'None' && (
+          <SettingItem label={t('settings.dashboard.mouseMiddleLongPressThreshold')} description={t('settings.dashboard.mouseMiddleLongPressThresholdDesc')}>
             <Slider value={settings.mouseMiddleButtonLongPressMs} onChange={value => onSettingChange('mouseMiddleButtonLongPressMs', value)} min={100} max={1000} step={50} unit="ms" />
           </SettingItem>
         )}
