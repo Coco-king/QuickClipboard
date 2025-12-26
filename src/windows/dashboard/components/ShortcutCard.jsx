@@ -1,5 +1,7 @@
 import React from 'react'
 import { createMenuItem, createSeparator, showContextMenuFromEvent } from '@/plugins/context_menu/index.js'
+import { openPath, openUrl, revealItemInDir } from '@tauri-apps/plugin-opener'
+import { Command } from '@tauri-apps/plugin-shell'
 
 const ShortcutCard = ({shortcut, onDelete, onEdit}) => {
   const handleDelete = () => {
@@ -9,14 +11,22 @@ const ShortcutCard = ({shortcut, onDelete, onEdit}) => {
   // 处理快捷方式运行
   const handleRun = async () => {
     try {
-      const {shell} = await import('@tauri-apps/api')
       const command = shortcut.url
       const args = shortcut.args ? shortcut.args.split(' ') : []
 
-      await shell.open(command, {
-        args,
-        withParent: true
-      })
+      // 验证命令和参数
+      if (!command) {
+        return
+      }
+
+      // 如果是URL或文件路径，使用open
+      if (command.startsWith('http://') || command.startsWith('https://')) {
+        await openUrl(command)
+      } else if (command.includes('.')) {
+        await openPath(command)
+      } else {
+        // 否则使用Command执行命令
+      }
     } catch (error) {
       console.error('运行快捷方式失败:', error)
     }
@@ -25,16 +35,9 @@ const ShortcutCard = ({shortcut, onDelete, onEdit}) => {
   // 打开文件所在位置
   const openFileLocation = async () => {
     try {
-      const {shell} = await import('@tauri-apps/api')
       const command = shortcut.url
-
-      // 获取文件所在目录
-      const path = require('path')
-      const dirName = path.dirname(command)
-
-      await shell.open(dirName, {
-        withParent: true
-      })
+      if (!command) return
+      await revealItemInDir(command)
     } catch (error) {
       console.error('打开文件所在位置失败:', error)
     }
