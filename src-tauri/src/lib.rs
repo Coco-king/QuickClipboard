@@ -163,6 +163,8 @@ pub fn run() {
                 commands::enable_win_v_hotkey_and_restart,
                 commands::prompt_disable_win_v_hotkey_if_needed,
                 commands::prompt_enable_win_v_hotkey,
+                commands::run_as_admin,
+                commands::run_program,
                 commands::enter_low_memory_mode,
                 commands::exit_low_memory_mode,
                 commands::is_low_memory_mode,

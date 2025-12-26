@@ -1,7 +1,7 @@
 import React from 'react'
 import { createMenuItem, createSeparator, showContextMenuFromEvent } from '@/plugins/context_menu/index.js'
-import { openPath, openUrl, revealItemInDir } from '@tauri-apps/plugin-opener'
-import { Command } from '@tauri-apps/plugin-shell'
+import { openUrl, revealItemInDir } from '@tauri-apps/plugin-opener'
+import { invoke } from '@tauri-apps/api/core'
 
 const ShortcutCard = ({shortcut, onDelete, onEdit}) => {
   const handleDelete = () => {
@@ -19,13 +19,15 @@ const ShortcutCard = ({shortcut, onDelete, onEdit}) => {
         return
       }
 
-      // 如果是URL或文件路径，使用open
+      // 如果是URL，使用openUrl
       if (command.startsWith('http://') || command.startsWith('https://')) {
         await openUrl(command)
-      } else if (command.includes('.')) {
-        await openPath(command)
       } else {
-        // 否则使用Command执行命令
+        // 对于文件路径或程序，使用run_program命令以支持参数
+        await invoke('run_program', {
+          program: command,
+          args: args
+        })
       }
     } catch (error) {
       console.error('运行快捷方式失败:', error)
@@ -46,18 +48,23 @@ const ShortcutCard = ({shortcut, onDelete, onEdit}) => {
   // 以管理员身份运行
   const runAsAdministrator = async () => {
     try {
-      const {shell} = await import('@tauri-apps/api')
-      const command = shortcut.url
-      const args = shortcut.args ? shortcut.args.split(' ') : []
+      const command = shortcut.url;
+      if (!command) return;
 
-      // 使用PowerShell命令来以管理员身份运行
-      const powerShellArgs = ['-Command', `Start-Process -FilePath "${command}" -ArgumentList @(${args.map(arg => `"${arg}"`).join(', ')}) -Verb RunAs`]
+      const args = shortcut.args ? shortcut.args.split(' ') : [];
 
-      await shell.execute('powershell.exe', powerShellArgs, {
-        withParent: true
-      })
+      // 调用Rust实现的run_as_admin命令
+      const success = await invoke('run_as_admin', {
+        program: command,
+        args: args
+      });
+
+      if (!success) {
+        console.error('以管理员身份运行失败: ShellExecuteW返回错误');
+      }
     } catch (error) {
-      console.error('以管理员身份运行失败:', error)
+      alert(error)
+      console.error('以管理员身份运行失败:', error);
     }
   }
 

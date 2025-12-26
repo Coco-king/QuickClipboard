@@ -1,7 +1,11 @@
-use serde_json::Value;
 use clipboard_rs::{Clipboard, ClipboardContext};
+use serde_json::Value;
+use std::ffi::OsStr;
+use std::os::windows::ffi::OsStrExt;
 use tauri_plugin_dialog::{DialogExt, MessageDialogButtons};
-
+use ::windows::core::PCWSTR;
+use ::windows::Win32::UI::Shell::ShellExecuteW;
+use ::windows::Win32::UI::WindowsAndMessaging::SW_SHOWNORMAL;
 
 #[tauri::command]
 pub fn set_mouse_position(x: i32, y: i32) -> Result<(), String> {
@@ -12,11 +16,10 @@ pub fn set_mouse_position(x: i32, y: i32) -> Result<(), String> {
 #[tauri::command]
 pub fn check_ai_translation_config() -> Result<Value, String> {
     use crate::services::get_settings;
-    
+
     let settings = get_settings();
-    let is_configured = !settings.ai_api_key.is_empty() 
-        && settings.ai_translation_enabled;
-    
+    let is_configured = !settings.ai_api_key.is_empty() && settings.ai_translation_enabled;
+
     Ok(serde_json::json!({
         "is_configured": is_configured,
         "enabled": settings.ai_translation_enabled,
@@ -39,8 +42,7 @@ pub fn disable_ai_translation_cancel_shortcut() -> Result<(), String> {
 // 复制纯文本
 #[tauri::command]
 pub fn copy_text_to_clipboard(text: String) -> Result<(), String> {
-    let ctx = ClipboardContext::new()
-        .map_err(|e| format!("创建剪贴板上下文失败: {}", e))?;
+    let ctx = ClipboardContext::new().map_err(|e| format!("创建剪贴板上下文失败: {}", e))?;
     ctx.set_text(text)
         .map_err(|e| format!("设置剪贴板文本失败: {}", e))
 }
@@ -161,4 +163,50 @@ pub fn exit_low_memory_mode(app: tauri::AppHandle) -> Result<(), String> {
 #[tauri::command]
 pub fn is_low_memory_mode() -> bool {
     crate::services::low_memory::is_low_memory_mode()
+}
+
+// 内部辅助函数：执行ShellExecuteW命令
+fn execute_shell_command(operation: &str, program: &str, args: &[String]) -> Result<bool, String> {
+    let operation: Vec<u16> = OsStr::new(operation)
+        .encode_wide()
+        .chain(std::iter::once(0))
+        .collect();
+
+    let file: Vec<u16> = OsStr::new(program)
+        .encode_wide()
+        .chain(std::iter::once(0))
+        .collect();
+
+    // 构建命令行参数
+    let args_str: String = args.join(" ");
+    let parameters: Vec<u16> = OsStr::new(&args_str)
+        .encode_wide()
+        .chain(std::iter::once(0))
+        .collect();
+
+    unsafe {
+        let result = ShellExecuteW(
+            None,
+            PCWSTR(operation.as_ptr()),
+            PCWSTR(file.as_ptr()),
+            PCWSTR(parameters.as_ptr()),
+            PCWSTR(std::ptr::null()),
+            SW_SHOWNORMAL,
+        );
+
+        // ShellExecuteW返回值大于32表示成功
+        Ok(result.0 as usize > 32)
+    }
+}
+
+// 运行程序（普通模式）
+#[tauri::command]
+pub fn run_program(program: String, args: Vec<String>) -> Result<bool, String> {
+    execute_shell_command("open", &program, &args)
+}
+
+// 以管理员身份运行程序
+#[tauri::command]
+pub fn run_as_admin(program: String, args: Vec<String>) -> Result<bool, String> {
+    execute_shell_command("runas", &program, &args)
 }
