@@ -11,6 +11,11 @@ const ShortcutGrid = () => {
   const [modalMode, setModalMode] = useState('add')
   const [editingShortcut, setEditingShortcut] = useState(null)
 
+  // 排序
+  const sort = async (sortType) => {
+    await dashboardStore.sortShortcuts(snapshot.selectedGroupId, sortType)
+  }
+
   // 打开添加模态框
   const openAddModal = () => {
     setModalMode('add')
@@ -55,6 +60,8 @@ const ShortcutGrid = () => {
               shortcut={shortcut}
               onDelete={() => dashboardStore.deleteShortcut(snapshot.selectedGroupId, shortcut.id)}
               onEdit={openEditModal}
+              onAdd={openAddModal}
+              sort={sort}
             />
           ))
         ) : (

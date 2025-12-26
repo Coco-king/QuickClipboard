@@ -6,6 +6,26 @@ function generateId() {
   return Date.now().toString(36) + Math.random().toString(36).substr(2)
 }
 
+function handlerSortShortcuts(shortcuts, sortType) {
+  if (!shortcuts) {
+    return
+  }
+
+  shortcuts.sort((a, b) => {
+    if (sortType === 'name') {
+      return a.name.localeCompare(b.name)
+    } else if (sortType === 'createdAt') {
+      return new Date(b.createdAt) - new Date(a.createdAt)
+    } else if (sortType === 'updatedAt') {
+      return new Date(b.updatedAt) - new Date(a.updatedAt)
+    }
+    return 0
+  })
+
+  // 重新排序新分组的快捷方式
+  return shortcuts.map((s, index) => [s.id, index])
+}
+
 // 启动板 Store
 export const dashboardStore = proxy({
   // 分组列表
@@ -14,12 +34,12 @@ export const dashboardStore = proxy({
   // UI设置
   showSearch: false,
   selectedGroupId: '',
-  
+
   // 获取当前选中的分组
   get selectedGroup() {
     return this.groups.find(group => group.id === this.selectedGroupId) || this.groups[0]
   },
-  
+
   // 从SQLite加载数据
   async loadData() {
     try {
@@ -143,6 +163,21 @@ export const dashboardStore = proxy({
     return true
   },
 
+  async sortShortcuts(selectedGroupId, sortType) {
+    // 对快捷方式进行排序
+    const group = this.groups.find(group => group.id === selectedGroupId)
+    if (group) {
+      const shortcutsForReorder = handlerSortShortcuts(group.shortcuts, sortType);
+      if (shortcutsForReorder) {
+        // 排序之后保存到数据库
+        await invoke('reorder_dashboard_shortcuts', {
+          groupId: selectedGroupId,
+          shortcuts: shortcutsForReorder
+        })
+      }
+    }
+  },
+
   // 添加快捷方式
   async addShortcut(groupId, shortcut) {
     const shortcutId = generateId()
@@ -253,10 +288,7 @@ export const dashboardStore = proxy({
         group.shortcuts.splice(targetIndex, 0, shortcut)
 
         // 准备重新排序的数据
-        const shortcutsForReorder = group.shortcuts.map((shortcut, index) => ({
-          id: shortcut.id,
-          order_index: index
-        }))
+        const shortcutsForReorder = group.shortcuts.map((shortcut, index) => [shortcut.id, index])
 
         // 调用重新排序API
         await invoke('reorder_dashboard_shortcuts', {
@@ -298,10 +330,7 @@ export const dashboardStore = proxy({
         toGroup.shortcuts.splice(targetIndex, 0, shortcut)
 
         // 重新排序新分组的快捷方式
-        const shortcutsForReorder = toGroup.shortcuts.map((s, index) => ({
-          id: s.id,
-          order_index: index
-        }))
+        const shortcutsForReorder = toGroup.shortcuts.map((s, index) => [s.id, index])
 
         await invoke('reorder_dashboard_shortcuts', {
           groupId: toGroupId,

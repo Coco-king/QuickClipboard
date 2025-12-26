@@ -4,8 +4,17 @@ use std::ffi::OsStr;
 use std::os::windows::ffi::OsStrExt;
 use tauri_plugin_dialog::{DialogExt, MessageDialogButtons};
 use ::windows::core::PCWSTR;
-use ::windows::Win32::UI::Shell::ShellExecuteW;
+use ::windows::Win32::UI::Shell::{ShellExecuteW, CSIDL_DESKTOPDIRECTORY, SHGetFolderPathW, IShellLinkW};
 use ::windows::Win32::UI::WindowsAndMessaging::SW_SHOWNORMAL;
+
+use ::windows::Win32::System::Com::{CoInitializeEx, CoUninitialize, CLSCTX_INPROC_SERVER, IPersistFile, COINIT_APARTMENTTHREADED, CoCreateInstance};
+// 直接定义 CLSID_SHELL_LINK 的GUID值，避免依赖可选特性
+const CLSID_SHELL_LINK: ::windows::core::GUID = ::windows::core::GUID::from_values(
+    0x00021401, 0x0000, 0x0000, [0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46]
+);
+use ::windows::core::HSTRING;
+
+use std::path::Path;
 
 #[tauri::command]
 pub fn set_mouse_position(x: i32, y: i32) -> Result<(), String> {
@@ -205,8 +214,131 @@ pub fn run_program(program: String, args: Vec<String>) -> Result<bool, String> {
     execute_shell_command("open", &program, &args)
 }
 
+// 显示"打开方式"对话框
+#[tauri::command]
+pub fn show_open_with_dialog(path: String) -> Result<bool, String> {
+    let operation: Vec<u16> = OsStr::new("open")
+        .encode_wide()
+        .chain(std::iter::once(0))
+        .collect();
+
+    let dll_path: Vec<u16> = OsStr::new("rundll32.exe")
+        .encode_wide()
+        .chain(std::iter::once(0))
+        .collect();
+
+    // 使用rundll32.exe shell32.dll,OpenAs_RunDLL <file_path>来显示打开方式对话框
+    let args_str = format!("shell32.dll,OpenAs_RunDLL {}", path);
+    let parameters: Vec<u16> = OsStr::new(&args_str)
+        .encode_wide()
+        .chain(std::iter::once(0))
+        .collect();
+
+    unsafe {
+        let result = ShellExecuteW(
+            None,
+            PCWSTR(operation.as_ptr()),
+            PCWSTR(dll_path.as_ptr()),
+            PCWSTR(parameters.as_ptr()),
+            PCWSTR(std::ptr::null()),
+            SW_SHOWNORMAL,
+        );
+
+        // ShellExecuteW返回值大于32表示成功
+        Ok(result.0 as usize > 32)
+    }
+}
+
 // 以管理员身份运行程序
 #[tauri::command]
 pub fn run_as_admin(program: String, args: Vec<String>) -> Result<bool, String> {
     execute_shell_command("runas", &program, &args)
+}
+
+// 创建桌面快捷方式
+#[tauri::command]
+pub fn create_desktop_shortcut(target_path: String, name: String, icon_path: String) -> Result<(), String> {
+    unsafe {
+        // 初始化COM
+        let result = CoInitializeEx(None, COINIT_APARTMENTTHREADED);
+        if result.is_err() {
+            return Err("Failed to initialize COM".to_string());
+        }
+        
+        // 获取桌面目录
+        let mut desktop_path = [0u16; 260];
+        let result = SHGetFolderPathW(
+            None, // 使用None表示空窗口句柄
+            CSIDL_DESKTOPDIRECTORY as i32, // 转换为正确的类型
+            None,
+            0,
+            &mut desktop_path, // 使用数组引用而不是指针
+        );
+        if result.is_err() {
+            CoUninitialize();
+            return Err("Failed to get desktop path".to_string());
+        }
+        
+        // 构建快捷方式文件路径
+        let shortcut_path = format!("{}\\{}.lnk", 
+            String::from_utf16_lossy(&desktop_path).trim_end_matches(char::from(0)), 
+            name
+        );
+        
+        // 创建ShellLink对象
+        let shell_link: Result<IShellLinkW, windows::core::Error> = unsafe {
+            CoCreateInstance(&CLSID_SHELL_LINK, None, CLSCTX_INPROC_SERVER)
+        };
+        if shell_link.is_err() {
+            CoUninitialize();
+            return Err("Failed to create shell link".to_string());
+        }
+        let mut shell_link = shell_link.unwrap();
+        
+        // 设置目标路径
+        let target_path_wide: Vec<u16> = OsStr::new(&target_path)
+            .encode_wide()
+            .chain(std::iter::once(0))
+            .collect();
+        let result = shell_link.SetPath(PCWSTR(target_path_wide.as_ptr()));
+        if result.is_err() {
+            CoUninitialize();
+            return Err("Failed to set target path".to_string());
+        }
+        
+        // 设置图标（如果提供）
+        if !icon_path.is_empty() && Path::new(&icon_path).exists() {
+            let icon_path_wide: Vec<u16> = OsStr::new(&icon_path)
+                .encode_wide()
+                .chain(std::iter::once(0))
+                .collect();
+            let result = shell_link.SetIconLocation(PCWSTR(icon_path_wide.as_ptr()), 0);
+            if result.is_err() {
+                CoUninitialize();
+                return Err("Failed to set icon location".to_string());
+            }
+        }
+        
+        // 获取IPersistFile接口
+        let persist_file: Result<IPersistFile, windows::core::Error> = unsafe {
+            ::windows::core::Interface::cast(&shell_link)
+        };
+        if persist_file.is_err() {
+            CoUninitialize();
+            return Err("Failed to get IPersistFile interface".to_string());
+        }
+        let mut persist_file = persist_file.unwrap();
+        
+        let shortcut_path_hstring = HSTRING::from(&shortcut_path);
+        let result = persist_file.Save(PCWSTR(shortcut_path_hstring.as_ptr()), true);
+        if result.is_err() {
+            CoUninitialize();
+            return Err("Failed to save shortcut".to_string());
+        }
+        
+        // 释放资源
+        CoUninitialize();
+        
+        Ok(())
+    }
 }

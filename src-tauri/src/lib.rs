@@ -165,6 +165,7 @@ pub fn run() {
                 commands::prompt_enable_win_v_hotkey,
                 commands::run_as_admin,
                 commands::run_program,
+                commands::show_open_with_dialog,
                 commands::enter_low_memory_mode,
                 commands::exit_low_memory_mode,
                 commands::is_low_memory_mode,
@@ -224,6 +225,7 @@ pub fn run() {
                 commands::reorder_dashboard_shortcuts,
                 commands::get_dashboard_data,
                 commands::get_app_icon,
+                commands::create_desktop_shortcut,
             ])
         .setup(|app| {
                 #[cfg(windows)]
