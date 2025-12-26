@@ -204,7 +204,7 @@ fn collect_file_info(file_paths: &[String]) -> Result<Vec<FileInfo>, String> {
         };
         
         // 获取文件图标
-        let icon_data = crate::utils::icon::get_file_icon_base64(&actual_path);
+        let icon_data = crate::utils::icon::get_file_icon_base64(&actual_path, 32);
         
         file_infos.push(FileInfo {
             path: stored_path,

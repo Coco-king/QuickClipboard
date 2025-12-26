@@ -4,11 +4,11 @@ use std::io::Cursor;
 use sha2::{Sha256, Digest};
 
 // 获取文件图标并转换为 Base64 Data URL
-pub fn get_file_icon_base64(path: &str) -> Option<String> {
-    match get_file_icon(path, 32) {
+pub fn get_file_icon_base64(path: &str, size: u32) -> Option<String> {
+    match get_file_icon(path, size as u16) {
         Ok(icon) => {
             if is_image_file(path) {
-                if let Ok(image_data) = read_image_thumbnail(path, 32) {
+                if let Ok(image_data) = read_image_thumbnail(path, size) {
                     return Some(image_data);
                 }
             }

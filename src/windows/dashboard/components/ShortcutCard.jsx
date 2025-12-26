@@ -1,37 +1,13 @@
-import React, { useState } from 'react'
-import { dashboardStore } from '@shared/store/dashboardStore.js'
-import Button from '@shared/components/ui/Button.jsx'
+import React from 'react'
 import { createMenuItem, createSeparator, showContextMenuFromEvent } from '@/plugins/context_menu/index.js'
 
-const ShortcutCard = ({shortcut, groupId}) => {
-  const [isEditing, setIsEditing] = useState(false)
-  const [editData, setEditData] = useState({...shortcut, url: shortcut.url || shortcut.path, runAsAdmin: shortcut.runAsAdmin || false, args: shortcut.args || shortcut.args || ''})
-
-  const handleEdit = () => {
-    setIsEditing(true)
+const ShortcutCard = ({ shortcut, onDelete, onEdit }) => {
+  const handleDelete = () => {
+    onDelete(shortcut.id)
   }
-
-  const handleSave = async () => {
-    if (editData.name.trim() && editData.url.trim()) {
-      await dashboardStore.editShortcut(groupId, shortcut.id, {
-        name: editData.name,
-        url: editData.url,
-        icon: editData.icon,
-        runAsAdmin: editData.runAsAdmin,
-        args: editData.args
-      })
-      setIsEditing(false)
-    }
-  }
-
-  const handleDelete = async () => {
-    if (confirm('确定要删除此快捷方式吗？')) {
-      await dashboardStore.deleteShortcut(groupId, shortcut.id)
-    }
-  }
-
+  
+  // 处理快捷方式运行
   const handleRun = async () => {
-    // 使用Tauri的shell API来执行文件
     try {
       const {shell} = await import('@tauri-apps/api')
       const command = shortcut.url || shortcut.path
@@ -41,13 +17,11 @@ const ShortcutCard = ({shortcut, groupId}) => {
         args,
         withParent: true
       })
-
-      console.log('运行快捷方式:', shortcut)
     } catch (error) {
       console.error('运行快捷方式失败:', error)
     }
   }
-
+  
   // 打开文件所在位置
   const openFileLocation = async () => {
     try {
@@ -61,13 +35,11 @@ const ShortcutCard = ({shortcut, groupId}) => {
       await shell.open(dirName, {
         withParent: true
       })
-
-      console.log('打开文件所在位置:', dirName)
     } catch (error) {
       console.error('打开文件所在位置失败:', error)
     }
   }
-
+  
   // 以管理员身份运行
   const runAsAdministrator = async () => {
     try {
@@ -75,20 +47,18 @@ const ShortcutCard = ({shortcut, groupId}) => {
       const command = shortcut.url || shortcut.path
       const args = shortcut.args ? shortcut.args.split(' ') : []
 
-      // 注意：Tauri的shell.open目前不支持直接以管理员身份运行
-      // 这里我们可以使用PowerShell命令来实现
+      // 使用PowerShell命令来以管理员身份运行
       const powerShellArgs = ['-Command', `Start-Process -FilePath "${command}" -ArgumentList @(${args.map(arg => `"${arg}"`).join(', ')}) -Verb RunAs`]
 
       await shell.execute('powershell.exe', powerShellArgs, {
         withParent: true
       })
-
-      console.log('以管理员身份运行:', shortcut)
     } catch (error) {
       console.error('以管理员身份运行失败:', error)
     }
   }
-
+  
+  // 处理右键菜单
   const handleContextMenu = async (event) => {
     event.preventDefault()
     event.stopPropagation()
@@ -117,7 +87,7 @@ const ShortcutCard = ({shortcut, groupId}) => {
         await openFileLocation()
         break
       case 'edit':
-        handleEdit()
+        onEdit(shortcut)
         break
       case 'delete':
         handleDelete()
@@ -126,88 +96,46 @@ const ShortcutCard = ({shortcut, groupId}) => {
   }
 
   return (
-    <div className="shortcut-card bg-white dark:bg-gray-800 rounded-xl shadow-md p-4 transition-all duration-200 hover:shadow-lg" onContextMenu={handleContextMenu}>
-      {isEditing ? (
-        <div className="space-y-3">
-          <input
-            type="text"
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
-            placeholder="快捷方式名称"
-            value={editData.name}
-            onChange={(e) => setEditData({...editData, name: e.target.value})}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') handleSave()
-              if (e.key === 'Escape') setIsEditing(false)
-            }}
-            autoFocus
-          />
-          <input
-            type="text"
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
-            placeholder="应用程序路径"
-            value={editData.url}
-            onChange={(e) => setEditData({...editData, url: e.target.value})}
-          />
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="runAsAdmin"
-              className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 dark:bg-gray-700 dark:border-gray-600"
-              checked={editData.runAsAdmin}
-              onChange={(e) => setEditData({...editData, runAsAdmin: e.target.checked})}
-            />
-            <label htmlFor="runAsAdmin" className="text-sm font-medium text-gray-700 dark:text-gray-300">以管理员身份运行</label>
-          </div>
-          <input
-            type="text"
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
-            placeholder="运行参数 (可选)"
-            value={editData.args}
-            onChange={(e) => setEditData({...editData, args: e.target.value})}
-          />
-          <input
-            type="text"
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white"
-            placeholder="图标类名"
-            value={editData.icon}
-            onChange={(e) => setEditData({...editData, icon: e.target.value})}
-          />
-          <div className="flex justify-end gap-2">
-            <Button variant="secondary" size="sm" onClick={() => setIsEditing(false)}>
-              取消
-            </Button>
-            <Button variant="primary" size="sm" onClick={handleSave} disabled={!editData.name.trim() || !editData.url.trim()}>
-              保存
-            </Button>
-          </div>
-        </div>
-      ) : (
-        <div className="shortcut-card-content">
-          <div
-            className="shortcut-icon text-3xl mb-3 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-            onClick={handleRun}
-          >
+    <div className="relative group bg-white dark:bg-gray-800 rounded-xl shadow-md p-4 transition-all duration-250 hover:shadow-xl hover:-translate-y-1 overflow-hidden cursor-pointer" onContextMenu={handleContextMenu}>
+      {/* 卡片背景装饰 */}
+      <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-blue-50/50 to-transparent dark:from-blue-900/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+      
+      <div className="space-y-1.5" onClick={handleRun}>
+        {shortcut.icon && (
+          <div className="text-4xl mb-3 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
             <i className={shortcut.icon}></i>
           </div>
-          <div className="shortcut-name font-medium text-center truncate mb-2 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors" onClick={handleRun}>
-            {shortcut.name}
-          </div>
-          <div className="shortcut-actions flex justify-center gap-1 opacity-0 hover:opacity-100 transition-opacity mt-2">
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={handleEdit}
-              icon={<i className="ti ti-pencil"></i>}
-            />
-            <Button
-              variant="danger"
-              size="sm"
-              onClick={handleDelete}
-              icon={<i className="ti ti-trash"></i>}
-            />
-          </div>
-        </div>
-      )}
+        )}
+        <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 truncate hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">{shortcut.name}</p>
+        <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{shortcut.url}</p>
+        {shortcut.args && (
+          <p className="text-xs text-gray-500 dark:text-gray-400 truncate">参数: {shortcut.args}</p>
+        )}
+      </div>
+      
+      {/* 快捷方式操作按钮 */}
+      <div className="absolute top-3 right-3 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-250">
+        <button
+          className="p-2 text-xs text-gray-600 bg-white dark:text-gray-300 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-200 shadow-sm"
+          onClick={(e) => {
+            e.stopPropagation()
+            onEdit(shortcut)
+          }}
+          title="编辑"
+        >
+          <i className="ti ti-pencil"></i>
+        </button>
+        <button
+          className="p-2 text-xs text-gray-600 bg-white dark:text-gray-300 dark:bg-gray-700 rounded-lg hover:bg-red-100 dark:hover:bg-red-900 hover:text-red-600 dark:hover:text-red-300 transition-all duration-200 shadow-sm"
+          onClick={(e) => {
+            e.stopPropagation()
+            handleDelete()
+          }}
+          title="删除"
+        >
+          <i className="ti ti-trash"></i>
+        </button>
+      </div>
     </div>
   )
 }

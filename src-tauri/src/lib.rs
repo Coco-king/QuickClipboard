@@ -221,6 +221,7 @@ pub fn run() {
                 commands::delete_dashboard_shortcut,
                 commands::reorder_dashboard_shortcuts,
                 commands::get_dashboard_data,
+                commands::get_app_icon,
             ])
         .setup(|app| {
                 #[cfg(windows)]

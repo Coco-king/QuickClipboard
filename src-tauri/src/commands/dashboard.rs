@@ -1,4 +1,5 @@
 use crate::services::database::dashboard::{dashboard_add_group, dashboard_add_shortcut, dashboard_delete_group, dashboard_delete_shortcut, dashboard_get_all_groups, dashboard_get_dashboard_data, dashboard_get_shortcuts_by_group, dashboard_reorder_groups, dashboard_reorder_shortcuts, dashboard_update_group, dashboard_update_shortcut};
+use crate::utils::icon::get_file_icon_base64;
 use crate::services::database::{DashboardGroup, DashboardShortcut};
 
 // 获取所有启动板分组
@@ -65,4 +66,10 @@ pub fn reorder_dashboard_shortcuts(group_id: String, shortcuts: Vec<(String, i32
 #[tauri::command]
 pub fn get_dashboard_data() -> Result<Vec<(DashboardGroup, Vec<DashboardShortcut>)>, String> {
     dashboard_get_dashboard_data()
+}
+
+// 获取应用程序图标
+#[tauri::command]
+pub fn get_app_icon(path: String, size: u32) -> Result<Option<String>, String> {
+    Ok(get_file_icon_base64(&path, size))
 }

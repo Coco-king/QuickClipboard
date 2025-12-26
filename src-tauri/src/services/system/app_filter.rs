@@ -323,7 +323,7 @@ mod windows_impl {
                                         name: title,
                                         process: name,
                                         path: path.clone(),
-                                        icon: crate::utils::icon::get_file_icon_base64(&path),
+                                        icon: crate::utils::icon::get_file_icon_base64(&path, 32),
                                     });
                                 }
                             }
