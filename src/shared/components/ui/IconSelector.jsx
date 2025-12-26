@@ -1,20 +1,22 @@
 import React, { useState } from 'react';
 import '@tabler/icons-webfont/dist/tabler-icons.min.css';
 import { ICONS } from '@shared/config/icons';
+import Button from "@shared/components/ui/Button.jsx";
+import Input from "@shared/components/ui/Input.jsx";
 
 /**
  * 通用图标选择器组件
  * @param {Object} props
- * @param {boolean} props.open - 控制选择器是否显示
+ * @param {boolean} props.isVisible - 控制选择器是否显示
  * @param {function} props.onClose - 关闭选择器的回调函数
  * @param {function} props.onSelect - 选择图标后的回调函数
  * @param {string} props.title - 选择器标题，默认"选择图标"
  */
-const IconSelector = ({ open, onClose, onSelect, title = "选择图标" }) => {
+const IconSelector = ({isVisible, onClose, onSelect, title = "选择图标"}) => {
   const [searchTerm, setSearchTerm] = useState('');
-  
-  if (!open) return null;
-  
+
+  if (!isVisible) return null;
+
   // 过滤图标列表
   const filteredIcons = ICONS.filter(icon => {
     const iconName = icon.replace('ti ti-', '').toLowerCase();
@@ -27,31 +29,28 @@ const IconSelector = ({ open, onClose, onSelect, title = "选择图标" }) => {
       onClick={onClose}
     >
       <div
-        className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 w-[500px] max-h-[70vh] overflow-y-auto"
+        className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 w-180 max-h-[70vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-xl font-bold">{title}</h3>
-          <button
-            className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-            onClick={onClose}
-          >
-            <i className="ti ti-x text-2xl"></i>
-          </button>
+
+          <div className="flex items-end justify-end gap-2">
+            {/* 搜索输入框 */}
+            <Input
+              type="text"
+              placeholder="搜索图标..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+
+            <Button onClick={onClose}>
+              <i className="ti ti-x text-2xl"></i>
+            </Button>
+          </div>
         </div>
-        
-        {/* 搜索输入框 */}
-        <div className="mb-6">
-          <input
-            type="text"
-            placeholder="搜索图标..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-          />
-        </div>
-        
-        <div className="grid grid-cols-8 gap-4">
+
+        <div className="grid grid-cols-10 gap-4">
           {filteredIcons.length > 0 ? (
             filteredIcons.map((icon, index) => (
               <button

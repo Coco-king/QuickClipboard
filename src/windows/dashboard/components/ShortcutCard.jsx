@@ -10,7 +10,7 @@ const ShortcutCard = ({shortcut, onDelete, onEdit}) => {
   const handleRun = async () => {
     try {
       const {shell} = await import('@tauri-apps/api')
-      const command = shortcut.url || shortcut.path
+      const command = shortcut.url
       const args = shortcut.args ? shortcut.args.split(' ') : []
 
       await shell.open(command, {
@@ -26,7 +26,7 @@ const ShortcutCard = ({shortcut, onDelete, onEdit}) => {
   const openFileLocation = async () => {
     try {
       const {shell} = await import('@tauri-apps/api')
-      const command = shortcut.url || shortcut.path
+      const command = shortcut.url
 
       // 获取文件所在目录
       const path = require('path')
@@ -44,7 +44,7 @@ const ShortcutCard = ({shortcut, onDelete, onEdit}) => {
   const runAsAdministrator = async () => {
     try {
       const {shell} = await import('@tauri-apps/api')
-      const command = shortcut.url || shortcut.path
+      const command = shortcut.url
       const args = shortcut.args ? shortcut.args.split(' ') : []
 
       // 使用PowerShell命令来以管理员身份运行
@@ -100,7 +100,7 @@ const ShortcutCard = ({shortcut, onDelete, onEdit}) => {
       <div className="w-26 h-26 relative border-1 border-transparent hover:border-gray-400 rounded-s p-2 transition-all duration-250 overflow-hidden cursor-pointer flex flex-col items-center" onContextMenu={handleContextMenu} onClick={handleRun}>
         {/* 图标部分 */}
         <div className="w-12 h-12">
-          {shortcut.icon.startsWith("ti") ? (<i className={`${shortcut.icon || "ti ti-star"} text-2xl`}></i>) : (<img src={shortcut.icon} alt="图标" className="w-full h-full object-contain"/>)}
+          {shortcut.icon.startsWith("ti") ? (<i className={`${shortcut.icon} text-5xl`}></i>) : (<img src={shortcut.icon} alt="图标" className="w-full h-full object-contain"/>)}
         </div>
         <p className="mt-1 w-full h-10 flex justify-center text-center overflow-hidden text-[0.8rem] text-gray-800 dark:text-gray-200 break-all">{shortcut.name}</p>
       </div>

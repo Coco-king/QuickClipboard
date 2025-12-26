@@ -1,12 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, forwardRef } from 'react';
 import { useSnapshot } from 'valtio';
 import { settingsStore } from '@shared/store/settingsStore';
 
-function Toggle({
+const Toggle = forwardRef(({
   checked,
   onChange,
   disabled = false
-}) {
+}, ref) => {
   const settings = useSnapshot(settingsStore);
   const uiAnimationEnabled = settings.uiAnimationEnabled !== false;
   const [particles, setParticles] = useState([]);
@@ -49,7 +49,7 @@ function Toggle({
     }
   };
   return <div className="relative">
-      <button type="button" role="switch" aria-checked={checked} disabled={disabled} onClick={handleClick} onKeyDown={handleKeyDown} className={`w-11 h-6 rounded-full relative overflow-visible transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer ${uiAnimationEnabled ? 'hover:scale-105 active:scale-95' : ''} ${checked ? 'bg-blue-500 dark:bg-blue-600' : 'bg-gray-300 dark:bg-gray-600'}`} style={{
+      <button ref={ref} type="button" role="switch" aria-checked={checked} disabled={disabled} onClick={handleClick} onKeyDown={handleKeyDown} className={`w-11 h-6 rounded-full relative overflow-visible transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer ${uiAnimationEnabled ? 'hover:scale-105 active:scale-95' : ''} ${checked ? 'bg-blue-500 dark:bg-blue-600' : 'bg-gray-300 dark:bg-gray-600'}`} style={{
       backgroundColor: checked ? '#3b82f6' : '#d1d5db'
     }}>
         <span key={animationKey} className={`block w-5 h-5 rounded-full shadow-md absolute top-0.5 transition-transform duration-200 ${uiAnimationEnabled ? 'animate-toggle-bounce' : ''} ${checked ? 'bg-gray-100' : 'bg-white'}`} style={{
@@ -67,5 +67,5 @@ function Toggle({
       }} />)}
       </button>
     </div>;
-}
+});
 export default Toggle;
