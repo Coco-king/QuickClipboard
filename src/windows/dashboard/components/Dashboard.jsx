@@ -26,7 +26,7 @@ const Dashboard = () => {
       </div>
 
       {/* 快捷方式网格 */}
-      <div className="shortcut-grid flex-1 p-6 pt-14 overflow-y-auto">
+      <div className="shortcut-grid flex-1 overflow-y-auto">
         <ShortcutGrid/>
       </div>
 

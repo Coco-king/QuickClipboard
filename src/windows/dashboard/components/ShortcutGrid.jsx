@@ -143,9 +143,8 @@ const ShortcutGrid = () => {
 
   return (
     <div className="shortcut-grid-content">
-
       {/* 快捷方式网格 */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-6 max-h-[calc(100vh-280px)] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent hover:scrollbar-thumb-gray-400">
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(6.5rem,auto))] gap-0 max-h-[calc(100vh-280px)] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent hover:scrollbar-thumb-gray-400 justify-items-start">
         {snapshot.selectedGroup?.shortcuts.length > 0 ? (
           snapshot.selectedGroup.shortcuts.map((shortcut) => (
             <ShortcutCard
