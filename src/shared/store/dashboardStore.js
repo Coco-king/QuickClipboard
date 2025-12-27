@@ -52,10 +52,8 @@ export const dashboardStore = proxy({
           name: group.name,
           icon: group.icon,
           shortcuts: shortcuts.map(shortcut => ({
-            id: shortcut.id,
-            name: shortcut.name,
-            icon: shortcut.icon,
-            url: shortcut.url,
+            ...shortcut,
+            _groupId: group.id,
             runAsAdmin: shortcut.run_as_admin || false,
             args: shortcut.args || '',
             createdAt: shortcut.created_at,
@@ -308,20 +306,9 @@ export const dashboardStore = proxy({
 
         const shortcut = fromGroup.shortcuts[shortcutIndex]
 
-        // 从原分组删除
-        await invoke('delete_dashboard_shortcut', {
-          id: shortcutId
-        })
-
-        // 添加到新分组
-        await invoke('add_dashboard_shortcut', {
+        await invoke('update_dashboard_shortcut_group', {
           id: shortcutId,
-          groupId: toGroupId,
-          name: shortcut.name,
-          icon: shortcut.icon || null,
-          url: shortcut.url,
-          runAsAdmin: shortcut.runAsAdmin || false,
-          args: shortcut.args || ''
+          groupId: toGroupId
         })
 
         // 更新本地状态

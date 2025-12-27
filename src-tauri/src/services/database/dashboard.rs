@@ -159,6 +159,17 @@ pub fn dashboard_add_shortcut(id: String, group_id: String, name: String, icon: 
     })
 }
 
+// 更新快捷方式分组
+pub fn dashboard_update_shortcut_group(id: String, group_id: String) -> Result<(), String> {
+    with_connection(|conn| {
+        conn.execute(
+            "UPDATE dashboard_shortcuts SET group_id = ?1, updated_at = ?2 WHERE id = ?3",
+            params![&group_id, chrono::Local::now().timestamp(), &id],
+        )?;
+        Ok(())
+    })
+}
+
 // 更新快捷方式
 pub fn dashboard_update_shortcut(id: String, name: String, icon: Option<String>, url: String, run_as_admin: Option<bool>, args: Option<String>) -> Result<DashboardShortcut, String> {
     with_connection(|conn| {

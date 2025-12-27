@@ -3,8 +3,12 @@ import { createMenuItem, createSeparator, showContextMenuFromEvent } from '@/plu
 import { openUrl, revealItemInDir } from '@tauri-apps/plugin-opener'
 import { invoke } from '@tauri-apps/api/core'
 import { CSS, useSortable } from '@shared/hooks/useSortable'
+import { useSnapshot } from 'valtio'
+import { dashboardStore } from '@shared/store/dashboardStore'
 
 const ShortcutCard = ({shortcut, onDelete, onEdit, onAdd, sort}) => {
+  const snapshot = useSnapshot(dashboardStore)
+
   // 使用 sortable hook 让卡片可拖拽
   const {
     attributes,
@@ -125,10 +129,32 @@ const ShortcutCard = ({shortcut, onDelete, onEdit, onAdd, sort}) => {
     }
   }
 
+  const onMoveGroup = async (result) => {
+    const targetGroupId = result.substring(14)
+    const currentGroupId = snapshot.selectedGroupId
+    await dashboardStore.moveShortcut(shortcut.id, currentGroupId, targetGroupId)
+  }
+
   // 处理右键菜单
   const handleContextMenu = async (event) => {
     event.preventDefault()
     event.stopPropagation()
+
+    // 创建分组子菜单项
+    const groupMenuItems = snapshot.groups
+    .filter(group => group.id !== snapshot.selectedGroupId)
+    .map(group =>
+      createMenuItem(`move-to-group-${group.id}`, group.name, {
+        icon: group.icon || 'ti ti-folder',
+        iconColor: group.name === '全部' ? null : (group.color || '#dc2626')
+      })
+    )
+
+    // 创建"移动到分组"主菜单项（包含子菜单）
+    const moveGroupItem = createMenuItem('moveGroup', '移动到分组', {icon: 'ti ti-switch-horizontal'})
+    if (groupMenuItems.length > 0) {
+      moveGroupItem.children = groupMenuItems
+    }
 
     const menuItems = [
       createMenuItem('runAsAdmin', '管理员身份运行', {icon: 'ti ti-shield'}),
@@ -139,6 +165,7 @@ const ShortcutCard = ({shortcut, onDelete, onEdit, onAdd, sort}) => {
       createMenuItem('createDesktopShortcut', '创建桌面快捷方式', {icon: 'ti ti-link'}),
       createSeparator(),
       createMenuItem('create', '新建项目', {icon: 'ti ti-plus'}),
+      moveGroupItem,  // 使用包含子菜单的移动到分组项
       createMenuItem('sortAsName', '按名称排序', {icon: 'ti ti-sort-a-z'}),
       createMenuItem('edit', '编辑', {icon: 'ti ti-pencil'}),
       createMenuItem('delete', '删除', {icon: 'ti ti-trash'}),
@@ -179,6 +206,12 @@ const ShortcutCard = ({shortcut, onDelete, onEdit, onAdd, sort}) => {
         break
       case 'delete':
         handleDelete()
+        break
+      default:
+        // 处理分组移动（子菜单选择）
+        if (result && result.startsWith('move-to-group-')) {
+          await onMoveGroup(result)
+        }
         break
     }
   }

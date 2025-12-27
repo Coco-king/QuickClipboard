@@ -1,4 +1,4 @@
-use crate::services::database::dashboard::{dashboard_add_group, dashboard_add_shortcut, dashboard_delete_group, dashboard_delete_shortcut, dashboard_get_all_groups, dashboard_get_dashboard_data, dashboard_get_shortcuts_by_group, dashboard_reorder_groups, dashboard_reorder_shortcuts, dashboard_update_group, dashboard_update_shortcut};
+use crate::services::database::dashboard::{dashboard_add_group, dashboard_add_shortcut, dashboard_delete_group, dashboard_delete_shortcut, dashboard_get_all_groups, dashboard_get_dashboard_data, dashboard_get_shortcuts_by_group, dashboard_reorder_groups, dashboard_reorder_shortcuts, dashboard_update_shortcut_group, dashboard_update_group, dashboard_update_shortcut};
 use crate::utils::icon::get_file_icon_base64;
 use crate::services::database::{DashboardGroup, DashboardShortcut};
 
@@ -42,6 +42,12 @@ pub fn get_dashboard_shortcuts(group_id: String) -> Result<Vec<DashboardShortcut
 #[tauri::command]
 pub fn add_dashboard_shortcut(id: String, group_id: String, name: String, icon: Option<String>, url: String, run_as_admin: Option<bool>, args: Option<String>) -> Result<DashboardShortcut, String> {
     dashboard_add_shortcut(id, group_id, name, icon, url, run_as_admin, args)
+}
+
+// 更新快捷方式分组
+#[tauri::command]
+pub fn update_dashboard_shortcut_group(id: String, group_id: String) -> Result<(), String> {
+    dashboard_update_shortcut_group(id, group_id)
 }
 
 // 更新快捷方式

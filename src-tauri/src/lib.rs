@@ -220,6 +220,7 @@ pub fn run() {
                 commands::reorder_dashboard_groups,
                 commands::get_dashboard_shortcuts,
                 commands::add_dashboard_shortcut,
+                commands::update_dashboard_shortcut_group,
                 commands::update_dashboard_shortcut,
                 commands::delete_dashboard_shortcut,
                 commands::reorder_dashboard_shortcuts,
