@@ -3,7 +3,7 @@ import { invoke } from '@tauri-apps/api/core'
 
 // 生成唯一ID
 function generateId() {
-  return Date.now().toString(36) + Math.random().toString(36).substr(2)
+  return Date.now().toString(36) + Math.random().toString(36).substring(2)
 }
 
 function handlerSortShortcuts(shortcuts, sortType) {
@@ -138,7 +138,7 @@ export const dashboardStore = proxy({
   // 重命名分组
   async renameGroup(groupId, newName) {
     try {
-      const updatedGroup = await invoke('update_dashboard_group', {
+      await invoke('update_dashboard_group', {
         id: groupId,
         name: newName,
         icon: null
@@ -353,6 +353,28 @@ export const dashboardStore = proxy({
   // 关闭搜索框
   closeSearch() {
     this.showSearch = false
+  },
+
+  // 重新排序分组
+  async reorderGroups(newOrder) {
+    try {
+      // 更新本地状态
+      const reorderedGroups = newOrder.map(id => this.groups.find(group => group.id === id));
+      this.groups = reorderedGroups;
+
+      // 转换为后端期望的格式：Vec<(String, i32)>
+      const groupsForReorder = newOrder.map((id, index) => [id, index]);
+
+      // 调用后端API保存新顺序
+      await invoke('reorder_dashboard_groups', {
+        groups: groupsForReorder
+      });
+
+      return true;
+    } catch (error) {
+      console.error('重新排序分组失败:', error);
+      return false;
+    }
   }
 })
 
