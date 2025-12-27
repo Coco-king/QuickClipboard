@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import '@tabler/icons-webfont/dist/tabler-icons.min.css';
-import { ICONS } from '@shared/config/icons';
+import { ICONS } from '@shared/utils/icons.js';
 import Button from "@shared/components/ui/Button.jsx";
 import Input from "@shared/components/ui/Input.jsx";
 

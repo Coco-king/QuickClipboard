@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { invoke } from '@tauri-apps/api/core';
 import { open } from '@tauri-apps/plugin-dialog';
+import { getIcon } from "@shared/utils/icons";
 import Button from '@shared/components/ui/Button.jsx';
 import Input from '@shared/components/ui/Input.jsx';
 import Textarea from '@shared/components/ui/Textarea.jsx';
@@ -69,22 +70,8 @@ const ShortcutEdit = ({isVisible, mode, shortcut, onClose, onSave}) => {
 
   // 处理应用程序路径变化，自动获取图标
   const handleUrlChange = async (url) => {
-    setCurrentShortcut(prev => ({...prev, url}))
-
-    // 当输入的路径看起来是一个有效的文件路径时，自动获取图标
-    if (url && (url.endsWith('.exe') || url.endsWith('.lnk') || url.includes('\\') || url.includes('/'))) {
-      try {
-        const icon = await invoke('get_app_icon', {path: url, size: 64})
-        if (icon) {
-          setCurrentShortcut(prev => ({...prev, icon}))
-        } else {
-          setCurrentShortcut(prev => ({...prev, icon: 'ti ti-apps'}))
-        }
-      } catch (error) {
-        console.error('获取应用程序图标失败:', error)
-        // 失败时保持默认图标
-      }
-    }
+    const icon = await getIcon(url)
+    setCurrentShortcut(prev => ({...prev, url, icon}))
   }
 
   if (!isVisible) return null;

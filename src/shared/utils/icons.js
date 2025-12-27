@@ -1,3 +1,53 @@
+import { invoke } from '@tauri-apps/api/core';
+import { basename } from "@tauri-apps/api/path";
+
+//获取主类型（第一个逗号前的部分）
+export async function getIcon(filePath, fileType = '') {
+  let dIcon = 'ti ti-apps'
+
+  if (!filePath) return dIcon
+
+  let fileName = await basename(filePath);
+
+  let icon = ''
+
+  // 当输入的路径看起来是一个有效的文件路径时，自动获取图标
+  if (filePath && (filePath.endsWith('.exe') || filePath.endsWith('.lnk') || filePath.includes('\\') || filePath.includes('/'))) {
+    try {
+      icon = await invoke('get_app_icon', {path: filePath, size: 64})
+    } catch (error) {
+      console.error('获取应用程序图标失败:', error)
+    }
+  }
+
+  if (icon) {
+    return icon
+  }
+
+  // 获取文件图标
+  if (fileType.startsWith('image/')) {
+    icon = 'ti ti-photo'
+  } else if (fileType.startsWith('video/')) {
+    icon = 'ti ti-player-play'
+  } else if (fileType.startsWith('audio/')) {
+    icon = 'ti ti-music'
+  } else if (fileType.includes('pdf')) {
+    icon = 'ti ti-file-text'
+  } else if (fileType.includes('word') || fileName.endsWith('.doc') || fileName.endsWith('.docx')) {
+    icon = 'ti ti-file-type-docx'
+  } else if (fileType.includes('excel') || fileName.endsWith('.xls') || fileName.endsWith('.xlsx')) {
+    icon = 'ti ti-file-type-xls'
+  } else if (fileType.includes('powerpoint') || fileName.endsWith('.ppt') || fileName.endsWith('.pptx')) {
+    icon = 'ti ti-file-type-ppt'
+  } else if (fileName.endsWith('.exe') || fileName.endsWith('.msi')) {
+    icon = 'ti ti-device-desktop'
+  } else if (fileName.endsWith('.lnk')) {
+    icon = 'ti ti-link'
+  }
+
+  return icon || dIcon
+}
+
 export const ICONS = [
   'ti ti-brand-soundcloud',
   'ti ti-wand',
