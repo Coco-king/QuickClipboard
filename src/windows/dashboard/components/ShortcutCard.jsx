@@ -2,8 +2,27 @@ import React from 'react'
 import { createMenuItem, createSeparator, showContextMenuFromEvent } from '@/plugins/context_menu/index.js'
 import { openUrl, revealItemInDir } from '@tauri-apps/plugin-opener'
 import { invoke } from '@tauri-apps/api/core'
+import { CSS, useSortable } from '@shared/hooks/useSortable'
 
 const ShortcutCard = ({shortcut, onDelete, onEdit, onAdd, sort}) => {
+  // 使用 sortable hook 让卡片可拖拽
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging
+  } = useSortable({
+    id: shortcut._sortId || shortcut.id
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition: transition || 'transform 200ms ease',
+    opacity: isDragging ? 0.3 : 1
+  };
+
   const handleDelete = () => {
     onDelete(shortcut.id)
   }
@@ -165,8 +184,8 @@ const ShortcutCard = ({shortcut, onDelete, onEdit, onAdd, sort}) => {
   }
 
   return (
-    <div className="w-full">
-      <div className="w-26 h-26 relative border-1 border-transparent hover:border-gray-400 rounded-s p-2 transition-all duration-250 overflow-hidden cursor-pointer flex flex-col items-center" onContextMenu={handleContextMenu} onClick={handleRun}>
+    <div className="w-full" ref={setNodeRef} style={style} {...attributes}>
+      <div className="w-26 h-26 relative border-1 border-transparent hover:border-gray-400 rounded-s p-2 transition-all duration-250 overflow-hidden cursor-pointer flex flex-col items-center" onContextMenu={handleContextMenu} onClick={handleRun} {...listeners}>
         {/* 图标部分 */}
         <div className="w-12 h-12">
           {shortcut.icon.startsWith("ti") ? (<i className={`${shortcut.icon} text-5xl`}></i>) : (<img src={shortcut.icon} alt="图标" className="w-full h-full object-contain"/>)}
