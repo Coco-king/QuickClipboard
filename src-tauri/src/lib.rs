@@ -247,9 +247,9 @@ pub fn run() {
                 
                 let window = app.get_webview_window("main").ok_or("无法获取主窗口")?;
                 let _ = window.set_focusable(false);
-                #[cfg(debug_assertions)]
-                let _ = window.open_devtools();
-                
+                /*#[cfg(debug_assertions)]
+                let _ = window.open_devtools();*/
+
                 if services::is_portable_build() {
                     if let Ok(exe) = std::env::current_exe() {
                         if let Some(dir) = exe.parent() {
@@ -323,6 +323,11 @@ pub fn run() {
 
             // 预加载dashboard窗口（不可见）
             let _ = windows::dashboard_window::creator::create_dashboard_window(app.handle(), false);
+            #[cfg(debug_assertions)]
+            {
+                let dashboard_window = app.get_webview_window("dashboard").ok_or("无法获取启动板窗口")?;
+                let _ = dashboard_window.open_devtools();
+            }
 
             Ok(())
         })
