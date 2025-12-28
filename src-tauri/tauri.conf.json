@@ -32,6 +32,27 @@
         "dragDropEnabled": false,
         "shadow": false,
         "visibleOnAllWorkspaces": true
+      },
+      {
+        "label": "dashboard",
+        "title": "启动板",
+        "url": "windows/dashboard/index.html",
+        "width": 1132,
+        "height": 700,
+        "minWidth": 647,
+        "minHeight": 400,
+        "decorations": false,
+        "transparent": true,
+        "alwaysOnTop": true,
+        "skipTaskbar": true,
+        "center": true,
+        "visible": false,
+        "resizable": true,
+        "focus": false,
+        "maximizable": false,
+        "dragDropEnabled": false,
+        "shadow": false,
+        "visibleOnAllWorkspaces": true
       }
     ],
     "security": {
