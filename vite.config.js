@@ -69,6 +69,7 @@ export default defineConfig({
         inputDialog: resolve(__dirname, 'src/plugins/input_dialog/inputDialog.html'),
         pinImage: resolve(__dirname, 'src/windows/pinImage/pinImage.html'),
         updater: resolve(__dirname, 'src/windows/updater/index.html'),
+        dashboard: resolve(__dirname, 'src/windows/dashboard/index.html'),
       },
 
       output: {
